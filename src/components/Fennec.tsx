@@ -49,8 +49,8 @@ export function Fennec({
   joystick,
 }: {
   scale: number;
-  startIntro: boolean;
-  joystick: any;
+  startIntro?: boolean;
+  joystick?: any;
 }) {
   const [timelineComplete, setTimelineComplete] = useState<boolean>(false);
   const frontWheels = useRef<Group | null>(null);
