@@ -13,6 +13,7 @@ import type { Group } from "three";
 import gsap from "gsap";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { useGyro } from "./useGyroscope";
 
 // const BOUNDS = {
 //   minX: -400,
@@ -46,12 +47,15 @@ export const NB_FLOORS = 7;
 export function Fennec({
   scale,
   startIntro,
+  gyroEnabled,
   joystick,
 }: {
   scale: number;
   startIntro?: boolean;
+  gyroEnabled?: boolean;
   joystick?: any;
 }) {
+  const gyroSteer = useGyro(gyroEnabled);
   const [timelineComplete, setTimelineComplete] = useState<boolean>(false);
   const frontWheels = useRef<Group | null>(null);
   const frontRightTire = useRef<Group | null>(null);
@@ -118,7 +122,7 @@ export function Fennec({
 
     // joystick.x is -1..1
     const steer = THREE.MathUtils.clamp(
-      keyboardSteer + joystick.current.x,
+      keyboardSteer + joystick.current.x + gyroSteer.current,
       -1,
       1,
     );

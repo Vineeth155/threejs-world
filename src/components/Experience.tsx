@@ -24,9 +24,11 @@ import { Fennec } from "./Fennec";
 export const Experience = ({
   joystick,
   startIntro,
+  gyroEnabled,
 }: {
   joystick: any;
   startIntro: boolean;
+  gyroEnabled: boolean;
 }) => {
   return (
     <>
@@ -55,7 +57,12 @@ export const Experience = ({
         </Suspense> */}
         {/* </Physics> */}
 
-        <Fennec scale={0.5} joystick={joystick} startIntro={startIntro} />
+        <Fennec
+          scale={0.5}
+          joystick={joystick}
+          startIntro={startIntro}
+          gyroEnabled={gyroEnabled}
+        />
         {/* <Ball /> */}
       </ScrollControls>
     </>
