@@ -7,7 +7,7 @@ Source: https://sketchfab.com/3d-models/fennec-rocket-league-car-5b43b1b6eeb4a12
 Title: Fennec - Rocket League Car
 */
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useGLTF, useScroll } from "@react-three/drei";
 import type { Group } from "three";
 import gsap from "gsap";
@@ -43,7 +43,15 @@ function useKeyboard() {
 export const FLOOR_HEIGHT = 9.3;
 export const NB_FLOORS = 7;
 
-export function Fennec(props: any) {
+export function Fennec({
+  scale,
+  startIntro,
+  joystick,
+}: {
+  scale: number;
+  startIntro: boolean;
+  joystick: any;
+}) {
   const [timelineComplete, setTimelineComplete] = useState<boolean>(false);
   const frontWheels = useRef<Group | null>(null);
   const frontRightTire = useRef<Group | null>(null);
@@ -60,15 +68,26 @@ export function Fennec(props: any) {
 
   const keys = useKeyboard();
 
-  const joystick = props.joystick;
-
   const { nodes, materials } = useGLTF(
     "./models/fennec_-_rocket_league_car_1k_Texture.glb",
   ) as any;
   const ref = useRef<Group | null>(null);
   const t1 = useRef<any>(null);
-
+  const introProgress = useRef(0);
   const scroll = useScroll();
+
+  useEffect(() => {
+    if (!startIntro) return;
+
+    gsap.to(introProgress, {
+      current: 1,
+      duration: 4,
+      ease: "power2.inOut",
+      onComplete: () => {
+        setTimelineComplete(true);
+      },
+    });
+  }, [startIntro]);
   // useFrame(() => {
   //   t1.current.seek(scroll.offset * t1.current.duration());
   // });
@@ -77,9 +96,12 @@ export function Fennec(props: any) {
     // if (t1.current && scroll) {
     //   t1.current.seek(scroll.offset * t1.current.duration());
     // }
-    if (!t1.current && !scroll) return;
-    t1.current.seek(scroll.offset * t1.current.duration());
-    const progress = scroll.offset;
+    if (!t1.current || !scroll) return;
+    const progress = timelineComplete
+      ? 1
+      : Math.max(scroll.offset, introProgress.current);
+
+    t1.current.seek(progress * t1.current.duration());
 
     if (progress >= 0.99 && !timelineComplete) {
       setTimelineComplete(true);
@@ -201,7 +223,7 @@ export function Fennec(props: any) {
       paused: true,
       onComplete: () => {
         // console.log("Timeline has ended!");
-        setTimelineComplete(true);
+        // setTimelineComplete(true);
         // You can set a state here or trigger any action
       },
     });
@@ -251,7 +273,7 @@ export function Fennec(props: any) {
   }, []);
 
   return (
-    <group {...props} dispose={null} ref={ref}>
+    <group scale={scale} dispose={null} ref={ref}>
       <group ref={frontWheels}>
         // front right tire
         <group
