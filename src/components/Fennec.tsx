@@ -60,6 +60,8 @@ export function Fennec(props: any) {
 
   const keys = useKeyboard();
 
+  const joystick = props.joystick;
+
   const { nodes, materials } = useGLTF(
     "./models/fennec_-_rocket_league_car_1k_Texture.glb",
   ) as any;
@@ -88,50 +90,95 @@ export function Fennec(props: any) {
     const moveSpeed = 50;
     const turnSpeed = 2;
     // Turn
-    if (
-      (keys.current["KeyA"] && keys.current["KeyW"]) ||
-      (keys.current["KeyD"] && keys.current["KeyS"])
-    ) {
-      ref.current.rotation.y += turnSpeed * delta;
+
+    const keyboardSteer =
+      (keys.current["KeyD"] ? 1 : 0) - (keys.current["KeyA"] ? 1 : 0);
+
+    // joystick.x is -1..1
+    const steer = THREE.MathUtils.clamp(
+      keyboardSteer + joystick.current.x,
+      -1,
+      1,
+    );
+    if (Math.abs(steer) > 0.05) {
+      ref.current.rotation.y -= steer * turnSpeed * delta;
+
+      frontLeftTire.current!.rotation.z = -steer * 0.4;
+      frontRightTire.current!.rotation.z = -steer * 0.4;
+    } else {
+      frontLeftTire.current!.rotation.z = 0;
+      frontRightTire.current!.rotation.z = 0;
     }
+    const keyboardThrottle =
+      (keys.current["KeyW"] ? 1 : 0) - (keys.current["KeyS"] ? 1 : 0);
+
+    // joystick.y:
+    // up = -1
+    // down = +1
+    const throttle = THREE.MathUtils.clamp(
+      keyboardThrottle - joystick.current.y,
+      -1,
+      1,
+    );
+
+    // if (
+    //   (keys.current["KeyA"] && keys.current["KeyW"]) ||
+    //   (keys.current["KeyD"] && keys.current["KeyS"])
+    // ) {
+    //   ref.current.rotation.y += turnSpeed * delta;
+    // }
     // else if (keys.current["KeyA"]) {
     //   frontLeftTire.current!.rotation.z = 0.2;
     //   frontRightTire.current!.rotation.z = 0.2;
     // }
-    else if (
-      (keys.current["KeyD"] && keys.current["KeyW"]) ||
-      (keys.current["KeyA"] && keys.current["KeyS"])
-    ) {
-      ref.current.rotation.y -= turnSpeed * delta;
-    }
+    // else if (
+    //   (keys.current["KeyD"] && keys.current["KeyW"]) ||
+    //   (keys.current["KeyA"] && keys.current["KeyS"])
+    // ) {
+    //   ref.current.rotation.y -= turnSpeed * delta;
+    // }
     // else if (keys.current["KeyD"]) {
     //   frontLeftTire.current!.rotation.z = -0.2;
     //   frontRightTire.current!.rotation.z = -0.2;
     // }
-    else {
-      frontLeftTire.current!.rotation.z = 0;
-      frontRightTire.current!.rotation.z = 0;
-    }
+    // else {
+    //   frontLeftTire.current!.rotation.z = 0;
+    //   frontRightTire.current!.rotation.z = 0;
+    // }
 
     // Forward direction
     const forward = new THREE.Vector3(10, 0, 0);
     forward.applyQuaternion(ref.current.quaternion);
 
+    if (Math.abs(throttle) > 0.05) {
+      ref.current.position.addScaledVector(
+        forward,
+        throttle * moveSpeed * delta,
+      );
+
+      const wheelSpeed = throttle * 8 * delta;
+
+      // frontLeftTire.current!.rotation.y += wheelSpeed;
+      // frontRightTire.current!.rotation.y += wheelSpeed;
+      backLeftTire.current!.rotation.y += wheelSpeed;
+      backRightTire.current!.rotation.y += wheelSpeed;
+    }
+
     // Move forward / backward
-    if (keys.current["KeyW"]) {
-      ref.current.position.addScaledVector(forward, moveSpeed * delta);
-      frontLeftTire.current!.rotation.y += 8 * delta;
-      frontRightTire.current!.rotation.y += 8 * delta;
-      backLeftTire.current!.rotation.y += 8 * delta;
-      backRightTire.current!.rotation.y += 8 * delta;
-    }
-    if (keys.current["KeyS"]) {
-      ref.current.position.addScaledVector(forward, -moveSpeed * delta);
-      frontLeftTire.current!.rotation.y -= 8 * delta;
-      frontRightTire.current!.rotation.y -= 8 * delta;
-      backLeftTire.current!.rotation.y -= 8 * delta;
-      backRightTire.current!.rotation.y -= 8 * delta;
-    }
+    // if (keys.current["KeyW"]) {
+    //   ref.current.position.addScaledVector(forward, moveSpeed * delta);
+    //   frontLeftTire.current!.rotation.y += 8 * delta;
+    //   frontRightTire.current!.rotation.y += 8 * delta;
+    //   backLeftTire.current!.rotation.y += 8 * delta;
+    //   backRightTire.current!.rotation.y += 8 * delta;
+    // }
+    // if (keys.current["KeyS"]) {
+    //   ref.current.position.addScaledVector(forward, -moveSpeed * delta);
+    //   frontLeftTire.current!.rotation.y -= 8 * delta;
+    //   frontRightTire.current!.rotation.y -= 8 * delta;
+    //   backLeftTire.current!.rotation.y -= 8 * delta;
+    //   backRightTire.current!.rotation.y -= 8 * delta;
+    // }
     if (ref.current.position.length() > 5000) {
       ref.current.position.set(0, 0, 0);
     }

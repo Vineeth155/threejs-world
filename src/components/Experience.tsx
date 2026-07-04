@@ -21,7 +21,7 @@ import { Fennec } from "./Fennec";
 //   );
 // }
 
-export const Experience = () => {
+export const Experience = ({ joystick }: { joystick: any }) => {
   return (
     <>
       {/* <Physics gravity={[0, -9.81, 0]}> */}
@@ -49,7 +49,7 @@ export const Experience = () => {
         </Suspense> */}
         {/* </Physics> */}
 
-        <Fennec scale={0.5} />
+        <Fennec scale={0.5} joystick={joystick} />
         {/* <Ball /> */}
       </ScrollControls>
     </>
